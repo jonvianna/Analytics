@@ -1,0 +1,39 @@
+import mysql.connector
+import pandas as pd
+
+connection = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="positivo",
+    database="northwind"
+)
+
+connection_multidim = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="positivo",
+    database="multidim_1"
+)
+
+select_statement = "SELECT product_name FROM products"
+cursor = connection.cursor()
+
+# Executar a consulta SQL
+cursor.execute(select_statement)
+
+# Recuperar os resultados
+results = cursor.fetchall()
+
+# Criar o DataFrame a partir dos resultados
+prod_df = pd.DataFrame(results, columns=["product_name"])
+
+cursor_multidim = connection_multidim.cursor()
+
+for i, r in prod_df.iterrows():
+    # Use placeholders (%s) para os valores e escapar as aspas nas strings
+    insert_statement = f"INSERT INTO dim_produto VALUES ({i+1}, '{r['product_name']}')"
+    
+    # Executar a inserção
+    cursor_multidim.execute(insert_statement)
+
+    connection_multidim.commit()
